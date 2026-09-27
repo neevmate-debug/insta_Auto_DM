@@ -153,13 +153,16 @@ async def handle_webhook_event(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON body")
 
     obj_type = payload.get("object")
-    logger.info("Received webhook event payload for object: %s", obj_type)
+    import json
+    logger.info("=== META WEBHOOK EVENT RECEIVED (object: %s) ===", obj_type)
+    logger.info("Full JSON Payload:\n%s", json.dumps(payload, indent=2))
 
     # Process comments in background tasks
     entries = payload.get("entry", [])
     comment_count = 0
 
     for entry in entries:
+        # 1. Instagram Post / Reel Comments
         changes = entry.get("changes", [])
         for change in changes:
             field = change.get("field")
@@ -167,6 +170,14 @@ async def handle_webhook_event(
                 comment_value = change.get("value", {})
                 background_tasks.add_task(process_comment_notification, comment_value, settings)
                 comment_count += 1
+            elif field in ("messages", "messaging"):
+                logger.info("Direct message webhook received in changes: %s", change.get("value"))
+
+        # 2. Instagram Direct Messages (DMs)
+        for msg_event in entry.get("messaging", []):
+            sender_id = msg_event.get("sender", {}).get("id")
+            message_data = msg_event.get("message", {})
+            logger.info("Instagram DM event received from sender [%s]: text='%s'", sender_id, message_data.get("text"))
 
     # Acknowledge receipt immediately to satisfy Meta's 20-second timeout policy
     return {
