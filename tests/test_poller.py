@@ -107,3 +107,18 @@ def test_poller_seeds_old_comments_and_replies_only_to_new():
             assert mock_send.call_count == 1
 
         asyncio.run(run_flow())
+
+
+def test_meta_api_service_normalizes_malformed_base_url():
+    from app.services.meta_service import MetaApiService
+
+    for bad_url in ["", "   ", "graph.instagram.com", " https://graph.facebook.com ", '"graph.instagram.com/"']:
+        s = Settings(
+            META_PAGE_ACCESS_TOKEN=" IGAA_test_token ",
+            META_GRAPH_API_BASE_URL=bad_url,
+            META_GRAPH_API_VERSION="v21.0",
+        )
+        svc = MetaApiService(s)
+        assert svc.base_url == "https://graph.instagram.com/v21.0", f"Failed for {bad_url!r}: got {svc.base_url!r}"
+        assert svc.access_token == "IGAA_test_token"
+

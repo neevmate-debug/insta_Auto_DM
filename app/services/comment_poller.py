@@ -76,7 +76,7 @@ class CommentPoller:
             "limit": self.media_limit,
         }
         headers = {
-            "Authorization": f"Bearer {self.settings.META_PAGE_ACCESS_TOKEN}",
+            "Authorization": f"Bearer {self.meta_service.access_token}",
         }
 
         response = await client.get(url, params=params, headers=headers)
@@ -197,7 +197,10 @@ class CommentPoller:
         if self._task is None or self._task.done():
             self._stop_event.clear()
             self._task = asyncio.create_task(self._run_loop(), name="instagram-comment-poller")
-            logger.info("Started Instagram background comment poller (interval=%ds).", self.interval)
+            logger.info(
+                "Started Instagram background comment poller (base_url=%s, interval=%ds).",
+                self.base_url, self.interval
+            )
 
     async def stop(self):
         """Stops the background poller task cleanly."""
