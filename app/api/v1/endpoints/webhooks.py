@@ -44,7 +44,12 @@ async def process_comment_notification(comment_data: dict, settings: Settings):
     comment_text = comment_data.get("text", "")
 
     # Prevent replying to comments made by our own account
-    if settings.INSTAGRAM_ACCOUNT_ID and from_id == settings.INSTAGRAM_ACCOUNT_ID:
+    is_own_comment = (
+        (settings.INSTAGRAM_ACCOUNT_ID and from_id == settings.INSTAGRAM_ACCOUNT_ID)
+        or bool(from_user.get("self_ig_scoped_id"))
+    )
+    if is_own_comment:
+        _processed_comments.add(comment_id)
         logger.info("Comment [ID: %s] is from own account. Skipping self-reply.", comment_id)
         return
 
@@ -55,6 +60,7 @@ async def process_comment_notification(comment_data: dict, settings: Settings):
     if trigger_keyword and trigger_keyword.strip():
         clean_keyword = trigger_keyword.strip().lower()
         if clean_keyword not in comment_text.lower():
+            _processed_comments.add(comment_id)
             logger.info(
                 "Comment [ID: %s] text '%s' does not match trigger keyword '%s'. No DM sent.",
                 comment_id, comment_text, trigger_keyword

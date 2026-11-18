@@ -25,3 +25,7 @@ services:
         sync: false
       - key: AUTO_DM_RESPONSE_MESSAGE
         value: "Hey! Thanks for your comment. Here is your requested link: https://example.com"
+      - key: ENABLE_COMMENT_POLLER
+        value: "true"
+      - key: COMMENT_POLL_INTERVAL_SECONDS
+        value: "10"

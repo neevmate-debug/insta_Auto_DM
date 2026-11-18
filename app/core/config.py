@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     AUTO_DM_TRIGGER_KEYWORD: Optional[str] = None
     AUTO_DM_RESPONSE_MESSAGE: str = "Thanks for your comment! Here is the link you requested: https://example.com"
 
+    # Background Comment Poller (fallback alongside Webhooks so replies work even under Meta Standard Access)
+    ENABLE_COMMENT_POLLER: bool = True
+    COMMENT_POLL_INTERVAL_SECONDS: int = 10
+    COMMENT_POLL_MEDIA_LIMIT: int = 10
+    COMMENT_POLL_COMMENTS_LIMIT: int = 10
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
