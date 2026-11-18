@@ -35,23 +35,29 @@ class MetaApiService:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.api_version = (settings.META_GRAPH_API_VERSION or "v21.0").strip().strip('"').strip("'").strip("/") or "v21.0"
+        raw_version = (settings.META_GRAPH_API_VERSION or "v21.0").strip().strip('"').strip("'").strip("/")
+        self.api_version = raw_version if raw_version.startswith("v") else "v21.0"
         self.access_token = (settings.META_PAGE_ACCESS_TOKEN or "").strip().strip('"').strip("'")
 
         raw_host = (settings.META_GRAPH_API_BASE_URL or "").strip().strip('"').strip("'").rstrip("/")
+        valid_hosts = {"https://graph.instagram.com", "https://graph.facebook.com"}
 
         # Instagram API with Instagram Login tokens start with "IG" (e.g. IGAA...)
-        # and MUST use https://graph.instagram.com instead of graph.facebook.com
+        # and MUST always use https://graph.instagram.com
         if self.access_token.startswith("IG"):
-            if not raw_host or "graph.facebook.com" in raw_host:
-                raw_host = "https://graph.instagram.com"
-        elif not raw_host:
-            raw_host = "https://graph.facebook.com"
+            resolved_host = "https://graph.instagram.com"
+        elif raw_host in valid_hosts:
+            resolved_host = raw_host
+        else:
+            resolved_host = "https://graph.facebook.com"
 
-        if not raw_host.startswith(("http://", "https://")):
-            raw_host = f"https://{raw_host}"
+        if raw_host and raw_host != resolved_host:
+            logger.warning(
+                "Ignoring invalid/mismatched META_GRAPH_API_BASE_URL=%r; using %s instead.",
+                raw_host, resolved_host
+            )
 
-        self.base_url = f"{raw_host}/{self.api_version}"
+        self.base_url = f"{resolved_host}/{self.api_version}"
 
     def is_configured(self) -> bool:
         """

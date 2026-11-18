@@ -112,7 +112,16 @@ def test_poller_seeds_old_comments_and_replies_only_to_new():
 def test_meta_api_service_normalizes_malformed_base_url():
     from app.services.meta_service import MetaApiService
 
-    for bad_url in ["", "   ", "graph.instagram.com", " https://graph.facebook.com ", '"graph.instagram.com/"']:
+    for bad_url in [
+        "",
+        "   ",
+        "graph.instagram.com",
+        "graph.instgram.com",
+        "17841406703162572",
+        "META_GRAPH_API_BASE_URL=https://graph.instagram.com",
+        " https://graph.facebook.com ",
+        '"graph.instagram.com/"',
+    ]:
         s = Settings(
             META_PAGE_ACCESS_TOKEN=" IGAA_test_token ",
             META_GRAPH_API_BASE_URL=bad_url,
