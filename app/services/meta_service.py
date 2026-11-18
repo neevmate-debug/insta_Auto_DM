@@ -36,7 +36,13 @@ class MetaApiService:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.api_version = settings.META_GRAPH_API_VERSION
-        self.base_url = f"{settings.META_GRAPH_API_BASE_URL}/{self.api_version}"
+        base_host = settings.META_GRAPH_API_BASE_URL.rstrip("/")
+        # Instagram API with Instagram Login tokens start with "IG" (e.g. IGAA...)
+        # and MUST use graph.instagram.com instead of graph.facebook.com
+        token = (settings.META_PAGE_ACCESS_TOKEN or "").strip()
+        if token.startswith("IG") and "graph.facebook.com" in base_host:
+            base_host = "https://graph.instagram.com"
+        self.base_url = f"{base_host}/{self.api_version}"
 
     def is_configured(self) -> bool:
         """

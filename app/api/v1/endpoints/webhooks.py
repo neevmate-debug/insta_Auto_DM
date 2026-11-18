@@ -136,6 +136,7 @@ async def handle_webhook_event(
     """
     raw_body = await request.body()
     signature = request.headers.get("X-Hub-Signature-256")
+    logger.info("Incoming POST /api/v1/webhooks request (%d bytes, signature present=%s)", len(raw_body), bool(signature))
 
     # Optional signature check: if META_APP_SECRET is set, verify the signature
     if settings.META_APP_SECRET:
